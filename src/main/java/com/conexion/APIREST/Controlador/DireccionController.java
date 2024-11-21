@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.conexion.APIREST.Modelos.Direccion;
+import com.conexion.APIREST.Modelos.DireccionDTO;
 import com.conexion.APIREST.Servicio.DireccionService;
 
 @RestController
@@ -30,10 +31,32 @@ public class DireccionController {
 
 
     // Obtener todas las direcciones de un usuario
-    @GetMapping("/usuarios/{usuariosId}")
+    @GetMapping("/usuarios/direccion/{usuariosId}")
     public ResponseEntity<List<Direccion>> obtenerDireccionesPorUsuarioId(@PathVariable Integer usuariosId) {
         List<Direccion> direcciones = direccionService.obtenerDireccionesPorUsuarioId(usuariosId);
         return ResponseEntity.ok(direcciones);
+    }
+
+    // Obtener todas las direcciones de un usuario, usando DireccionDTO
+    @GetMapping("/usuarios/{usuariosId}")
+    public ResponseEntity<List<DireccionDTO>> obtenerDireccionesDTOPorUsuarioId(@PathVariable Integer usuariosId) {
+        List<DireccionDTO> direccionesDTO = direccionService.obtenerDireccionesDTOPorUsuarioId(usuariosId);
+        return ResponseEntity.ok(direccionesDTO);
+    }
+
+    @GetMapping("/usuarios/{usuariosId}/primera/dir")
+    public ResponseEntity<DireccionDTO> obtenerPrimeraDireccionDTOPorUsuarioId(@PathVariable Integer usuariosId) {
+        DireccionDTO primeraDireccionDTO = direccionService.obtenerPrimeraDireccionDTOPorUsuarioId(usuariosId);
+        return ResponseEntity.ok(primeraDireccionDTO);
+    }
+
+    @GetMapping("/usuarios/{usuariosId}/primera")
+    public ResponseEntity<Direccion> obtenerPrimeraDireccionPorUsuarioId(@PathVariable Integer usuariosId) {
+        Direccion primeraDireccion = direccionService.obtenerPrimeraDireccionPorUsuarioId(usuariosId);
+        if (primeraDireccion == null) {
+            return ResponseEntity.notFound().build(); // Devuelve un 404 si no se encuentra la dirección
+        }
+        return ResponseEntity.ok(primeraDireccion); // Devuelve la dirección si se encuentra
     }
 
     // Actualizar una dirección existente

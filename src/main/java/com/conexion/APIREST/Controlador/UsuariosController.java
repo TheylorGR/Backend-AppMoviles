@@ -13,7 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.conexion.APIREST.Modelos.Direccion;
+import com.conexion.APIREST.Modelos.UsuarioDTO;
 import com.conexion.APIREST.Modelos.Usuarios;
+import com.conexion.APIREST.Servicio.DireccionService;
 import com.conexion.APIREST.Servicio.UsuarioService;
 
 @RestController
@@ -24,17 +27,19 @@ public class UsuariosController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @GetMapping
-    public ResponseEntity<List<Usuarios>> obtenerTodosLosUsuarios(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-            if (session != null) {
-            List<Usuarios> usuarios = usuarioService.obtenerTodosLosUsuarios();
-            return ResponseEntity.ok(usuarios);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-    }
+    @Autowired
+    private DireccionService direccionService;
 
+    @GetMapping
+    public ResponseEntity<List<UsuarioDTO>> obtenerTodosLosUsuarios(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            List<UsuarioDTO> usuariosDTO = usuarioService.obtenerTodosLosUsuarios();
+            return ResponseEntity.ok(usuariosDTO);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 
     // Crear un nuevo usuario
     @PostMapping
@@ -44,11 +49,12 @@ public class UsuariosController {
 
     // Actualizar usuario
     @PutMapping("/email/{email}")
-    public ResponseEntity<Usuarios> actualizarUsuario(@PathVariable String email, @RequestBody Usuarios detallesActualizados) {
+    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable String email, @RequestBody Usuarios detallesActualizados) {
         Usuarios usuarioActualizado = usuarioService.actualizarUsuarioPorEmail(email, detallesActualizados);
 
         if (usuarioActualizado != null) {
-            return ResponseEntity.ok(usuarioActualizado);
+            UsuarioDTO usuarioDTO = usuarioService.convertirAUsuarioDTO(usuarioActualizado);
+            return ResponseEntity.ok(usuarioDTO);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -61,11 +67,33 @@ public class UsuariosController {
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<Usuarios> obtenerUsuarioPorEmail(@PathVariable String email) {
-    Usuarios usuario = usuarioService.obtenerUsuarioPorEmail(email);
+    public ResponseEntity<UsuarioDTO> obtenerUsuarioPorEmail(@PathVariable String email) {
+        Usuarios usuario = usuarioService.obtenerUsuarioPorEmail(email);
         if (usuario != null) {
-            return ResponseEntity.ok(usuario);
-        }else {
+            UsuarioDTO usuarioDTO = usuarioService.convertirAUsuarioDTO(usuario);
+            return ResponseEntity.ok(usuarioDTO);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //UsuarioDTO para limitar los datos y relaciones
+    @GetMapping("/perfil/{email}")
+    public ResponseEntity<UsuarioDTO> obtenerPerfilUsuario(@PathVariable String email) {
+        // Obtener el usuario DTO por el email
+        UsuarioDTO usuarioDTO = usuarioService.obtenerUsuarioDTOPorEmail(email);
+        
+        if (usuarioDTO != null) {
+            // Obtener la primera dirección asociada al usuario
+            Direccion primeraDireccion = direccionService.obtenerPrimeraDireccionPorUsuario(email);
+            
+            if (primeraDireccion != null) {
+                // Asignar la dirección al DTO
+                usuarioDTO.setDireccion(primeraDireccion);
+            }
+
+            return ResponseEntity.ok(usuarioDTO);
+        } else {
             return ResponseEntity.notFound().build();
         }
     }
@@ -73,20 +101,16 @@ public class UsuariosController {
     // Login de usuario
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Usuarios usuario, HttpServletRequest request) {
-        // Crear un mapa para almacenar la respuesta en formato JSON
         Map<String, Object> response = new HashMap<>();
 
-        // Obtener el usuario por el email
         Usuarios usuarioExistente = usuarioService.obtenerUsuarioPorEmail(usuario.getEmail());
 
-        // Verificar si existe y si la contraseña es correcta
         if (usuarioExistente != null && usuarioService.verificarContrasenia(usuario.getContrasenia(), usuarioExistente.getContrasenia())) {
             response.put("message", "Inicio de sesión exitoso");
-            response.put("usuarioId", usuarioExistente.getId()); // Agregar el usuarioId a la respuesta
+            response.put("usuarioId", usuarioExistente.getId());
 
-            // Crear sesión si es necesario
             HttpSession session = request.getSession();
-            session.setAttribute("usuarioId", usuarioExistente.getId()); // Guardar el usuarioId en la sesión
+            session.setAttribute("usuarioId", usuarioExistente.getId());
 
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, "JSESSIONID=" + session.getId()).body(response);
         } else {
@@ -94,5 +118,4 @@ public class UsuariosController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
-
 }

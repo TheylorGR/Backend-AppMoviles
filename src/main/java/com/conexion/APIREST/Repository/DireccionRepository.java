@@ -8,4 +8,9 @@ import com.conexion.APIREST.Modelos.Direccion;
 
 public interface DireccionRepository extends JpaRepository<Direccion, Integer>{
     List<Direccion> findByUsuarioId(Integer usuarioId);
+
+    Optional<Direccion> findFirstByUsuarioIdOrderByIdAsc(Integer usuarioId);
+
+    Direccion findTop1ByUsuarioEmailOrderByIdAsc(String email);
+    
 }

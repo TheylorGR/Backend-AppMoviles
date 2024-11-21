@@ -38,4 +38,13 @@ public class ComidaService {
     public void eliminarComida(Integer id) {
         comidaRepository.deleteById(id);
     }
+
+    public Comida actualizarComida(Comida comidaActualizada) {
+        return comidaRepository.save(comidaActualizada);
+    }
+
+    public void actualizarStock(Comida comida) {
+        comidaRepository.save(comida);
+    }
+
 }
