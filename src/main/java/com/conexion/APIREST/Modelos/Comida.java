@@ -9,7 +9,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-
 //Se usa para no ingresar getters y setters
 import lombok.Data;
 
@@ -34,6 +33,6 @@ public class Comida {
 
     @Transient
     private Integer cantidadSolicitada;
-
+    
     public Comida() {}
 }

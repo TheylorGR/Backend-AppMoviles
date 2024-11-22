@@ -19,7 +19,7 @@ import com.conexion.APIREST.Servicio.FiltroService;
 @RestController
 @RequestMapping("/filtro")
 @CrossOrigin(origins = {"http://localhost:8030", "http://127.0.0.1:8083"}, allowCredentials = "true")
-class FiltroController {
+public class FiltroController {
     
     @Autowired
     private FiltroService filtroService;
